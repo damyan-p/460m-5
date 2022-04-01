@@ -49,6 +49,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
     wire[7:0] data_out_ctrl;
     wire[7:0] data_bus;
     reg[7:0] val;
+    reg[7:0] op1, op2;
     
     reg read_data;
     reg read_val;
@@ -137,16 +138,17 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 0;
         next_state = 4;
         end
-        5'd5: 
+        5'd5: //adding
         begin
         read_data = 1;
         read_val = 0;
         read_in = 0;
         we = 0;
-        next_state = 7;
         DVR = data_bus;
+        op1 = data_bus;
+        next_state = 7;
         end
-        5'd6: 
+        5'd6: //subtracting start
         begin
         read_data = 0;
         read_val = 0;
@@ -209,7 +211,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 0;
         next_state = 11;
         end
-        5'd7: 
+        5'd7://next step to adding 
         begin
         read_data = 1;
         read_val = 0;
@@ -220,12 +222,13 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 0;
         next_state = 12;
         end
-        5'd8: 
+        5'd8: //next step to subtracting, getting first value
         begin
         read_data = 1;
         read_val = 0;
         read_in = 0;
         val = data_bus;
+        op1 = data_bus;
         SPR = SPR + 1;
         DAR = SPR;
         we = 0;
@@ -240,16 +243,17 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         next_state = 20;
         val = data_bus;
         end
-        5'd12: 
+        5'd12: //more adding stuff
         begin
         read_data = 1;
         read_val = 0;
         read_in = 0;
         DVR = data_bus;
+        op2 = data_bus;
         we = 0;
         next_state = 18;
         end
-        5'd17: 
+        5'd17: //next sub state
         begin
         read_data = 0;
         read_val = 0;
@@ -257,22 +261,23 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 0;
         next_state = 15;
         end
-        5'd18: 
+        5'd18: //finally adding!
         begin
         read_data = 0;
         read_val = 0;
         read_in = 0;
         we = 0;
-        val = val + DVR;
+        val = op1 + op2;
         next_state = 16;
         end
-        5'd15: 
+        5'd15: //finally subtracing!
         begin
         read_data = 1;
         read_val = 0;
         read_in = 0;
         we = 0;
-        val = data_bus - val;
+        op2 = data_bus;
+        val = op1 - op2;
         next_state = 16;
         end
         5'd16: 
@@ -283,13 +288,15 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 1;
         next_state = 19;
         end
-        5'd19:
+        5'd19://outputting to board 
         begin
         read_val = 1;
         read_data = 0;
         read_in = 0;
-        DVR = data_bus;
+        DVR = val;
         next_state = 0;
+        op1 = 0;
+        op2 = 0;
         we = 0;
         end
         5'd20:
