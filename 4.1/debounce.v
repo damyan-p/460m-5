@@ -46,7 +46,7 @@ module debounce2(
     );
     
     wire Q1, Q2;
-    assign out = (Q2);
+    assign out = (Q1)&&(Q2);
     
     dflip d0(.clk(slow_clk),.D(in),.Q(Q1));
     dflip d1(.clk(clk),.D(Q1),.Q(Q2));

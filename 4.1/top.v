@@ -142,8 +142,10 @@ module top(clk,btns,swtchs,leds,segs,an);
         5'd3: 
         begin
         we = 1;
-        e
-        next_state = 2;
+        read_data = 0;
+        read_val = 0;
+        read_in = 1;
+        next_state = 20;
         end
         5'd4: 
         begin

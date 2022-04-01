@@ -29,8 +29,8 @@ wire[6:0] in0, in1;
 assign segs = segs_reg;
 assign an = an_reg;
 
-hex_to_sseg h0(.x(out[7:4]),.r(in0));
-hex_to_sseg h1(.x(out[3:0]),.r(in1));
+hex_to_sseg h0(.x(out[7:4]),.r(in1));
+hex_to_sseg h1(.x(out[3:0]),.r(in0));
 
 reg state;
 reg next_state;
@@ -43,15 +43,15 @@ next_state <= 0;
 end
 
 always @(*) begin
-    an_reg[3:2] <= 1;
+
     case(state)
-    0: begin
-        an_reg[1:0] <= 10;
+    1'd0: begin
+        an_reg <= 4'b1110;
         segs_reg <= in0;
         next_state <= 1;
     end
-    1: begin
-        an_reg[1:0] <= 01;
+    1'd1: begin
+        an_reg <= 4'b1101;
         segs_reg <= in1;
         next_state <= 0;
     end

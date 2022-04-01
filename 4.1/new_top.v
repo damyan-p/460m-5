@@ -32,7 +32,6 @@ module new_top(clk,btns,swtchs,leds,segs,an);
     reg[7:0] DVR;
     reg[4:0] state;
     reg[4:0] next_state;
-    reg[7:0] out;
     
     assign leds[7] = (SPR == 7'h7F);
     assign leds[6] = DAR[6];
@@ -82,14 +81,14 @@ module new_top(clk,btns,swtchs,leds,segs,an);
     debounce2 d3(.clk(clk),.slow_clk(n_clk),.in(btns[3]),.out(b[3]));
     
     //  SIM clocks
-    //clk_div_b clk1(.clk(clk),.offset(31'd17),.slow_clk(disp_clk));
-    //clk_div clk2(.clk(clk),.offset(31'd2),.slow_clk(n_clk));
+    clk_div_b clk1(.clk(clk),.offset(31'd17),.slow_clk(disp_clk));
+    clk_div clk2(.clk(clk),.offset(31'd2),.slow_clk(n_clk));
     
     //  FPGA clocks
-    clk_div_b clk1(.clk(clk),.offset(31'd17),.slow_clk(disp_clk));
-    clk_div clk2(.clk(clk),.offset(31'd5000000),.slow_clk(n_clk));
+    //clk_div_b clk1(.clk(clk),.offset(31'd17),.slow_clk(disp_clk));
+    //clk_div clk2(.clk(clk),.offset(31'd5000000),.slow_clk(n_clk));
     
-    dispFSM display(.clk(disp_clk),.an(an),.segs(segs),.out(out));  
+    dispFSM display(.clk(disp_clk),.an(an),.segs(segs),.out(DVR));  
       
     initial begin
     read_data <= 0;
@@ -99,13 +98,14 @@ module new_top(clk,btns,swtchs,leds,segs,an);
     DAR <= 0;
     state <= 11;
     next_state <= 0;
-    out <= 0;
+    DVR <= 0;
     we <= 0;
 //    addr <= 0;
     val <= 0;
     end
     
-    always @(state,b[1],b[0]) begin
+    //always @(state,b[1],b[0]) begin
+    always @(posedge clk) begin
     case(state)
         5'd0: 
         begin
@@ -131,7 +131,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         end
         5'd2: 
         begin
-        read_data = 1;
+        read_data = 0;
         read_val = 0;
         read_in = 0;
         we = 0;
@@ -139,11 +139,12 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         end
         5'd5: 
         begin
-        read_data = 0;
+        read_data = 1;
         read_val = 0;
         read_in = 0;
         we = 0;
         next_state = 7;
+        DVR = data_bus;
         end
         5'd6: 
         begin
@@ -172,21 +173,21 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         DAR = 0;
         next_state = 0;
         end
-        5'd17: 
+        5'd13: 
+        begin
+        read_data = 0;
+        read_val = 0;
+        read_in = 0;
+        DAR = DAR + 1'b1;
+        we = 0;
+        next_state = 11;
+        end
+        5'd14: 
         begin
         read_data = 0;
         read_val = 0;
         read_in = 0;
         DAR = DAR - 1;
-        we = 0;
-        next_state = 11;
-        end
-        5'd18: 
-        begin
-        read_data = 0;
-        read_val = 0;
-        read_in = 0;
-        DAR = DAR + 1;
         we = 0;
         next_state = 11;
         end
@@ -213,9 +214,9 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         read_data = 1;
         read_val = 0;
         read_in = 0;
-        val = data_bus;
+        val = DVR;
         SPR = SPR + 1;
-        DAR = SPR;
+        DAR = SPR + 1;
         we = 0;
         next_state = 12;
         end
@@ -228,7 +229,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         SPR = SPR + 1;
         DAR = SPR;
         we = 0;
-        next_state = 13;
+        next_state = 17;
         end
         5'd11: 
         begin
@@ -241,27 +242,28 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         end
         5'd12: 
         begin
-        read_data = 0;
-        read_val = 0;
-        read_in = 0;
-        we = 0;
-        next_state = 14;
-        end
-        5'd13: 
-        begin
-        read_data = 0;
-        read_val = 0;
-        read_in = 0;
-        we = 0;
-        next_state = 14;
-        end
-        5'd14: 
-        begin
         read_data = 1;
         read_val = 0;
         read_in = 0;
+        DVR = data_bus;
         we = 0;
-        val = data_bus + val;
+        next_state = 18;
+        end
+        5'd17: 
+        begin
+        read_data = 0;
+        read_val = 0;
+        read_in = 0;
+        we = 0;
+        next_state = 15;
+        end
+        5'd18: 
+        begin
+        read_data = 0;
+        read_val = 0;
+        read_in = 0;
+        we = 0;
+        val = val + DVR;
         next_state = 16;
         end
         5'd15: 
@@ -286,7 +288,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         read_val = 1;
         read_data = 0;
         read_in = 0;
-        out = data_bus;
+        DVR = data_bus;
         next_state = 0;
         we = 0;
         end
@@ -296,7 +298,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         read_val = 0;
         read_in = 0;
         we = 0;
-        out = data_bus;
+        DVR = data_bus;
         next_state = 0;
         end
         endcase
