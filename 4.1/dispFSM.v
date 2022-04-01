@@ -43,14 +43,15 @@ next_state <= 0;
 end
 
 always @(*) begin
+    an_reg[3:2] <= 1;
     case(state)
     0: begin
-        an_reg <= 1110;
+        an_reg[1:0] <= 10;
         segs_reg <= in0;
         next_state <= 1;
     end
     1: begin
-        an_reg <= 1101;
+        an_reg[1:0] <= 01;
         segs_reg <= in1;
         next_state <= 0;
     end

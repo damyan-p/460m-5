@@ -46,20 +46,22 @@ module new_top(clk,btns,swtchs,leds,segs,an);
 
     reg we;
     reg[6:0] addr;
-    reg[7:0] data_out_mem;
-    reg[7:0] data_out_ctrl;
+    wire[7:0] data_out_mem;
+    wire[7:0] data_out_ctrl;
     wire[7:0] data_bus;
     reg[7:0] val;
     
     reg read_data;
     reg read_val;
     reg read_in;
+    
     assign data_bus = read_data ? data_out_mem : 'bz;
     assign data_bus = read_val ? val : 'bz;
     assign data_bus = read_in ? swtchs : 'bz;
 
     //controller ctr1(clk, we, DAR, data_bus, data_out_ctrl, btns, swtchs, leds, segs, an); 
-    //memory m1(clk, we, DAR, data_bus, DVR);
+    memory m1(clk, we, DAR, data_bus, data_out_mem);
+    /*
     reg[7:0] RAM[0:127];
     
     always @(negedge clk) begin
@@ -68,6 +70,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
             
         DVR <= RAM[DAR];
     end
+    */
     
     wire n_clk;
     wire disp_clk;
@@ -98,9 +101,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
     next_state <= 0;
     out <= 0;
     we <= 0;
-    addr <= 0;
-    data_out_mem <= 0;
-    data_out_ctrl <= 0;
+//    addr <= 0;
     val <= 0;
     end
     
@@ -124,18 +125,17 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         read_val = 0;
         read_in = 0;
         we = 0;
-        
-        SPR = SPR - 1;
-        DAR = SPR + 1;
+        DAR <= SPR;
+        SPR <= SPR - 1;
         next_state = 3;
         end
         5'd2: 
         begin
-        read_data = 0;
+        read_data = 1;
         read_val = 0;
         read_in = 0;
         we = 0;
-        next_state = 11;
+        next_state = 4;
         end
         5'd5: 
         begin
