@@ -101,7 +101,8 @@ module new_top(clk,btns,swtchs,leds,segs,an);
     next_state <= 0;
     DVR <= 0;
     we <= 0;
-//    addr <= 0;
+    op1 <= 0;
+    op2 <= 0;
     val <= 0;
     end
     
@@ -150,10 +151,12 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         end
         5'd6: //subtracting start
         begin
-        read_data = 0;
+       read_data = 1;
         read_val = 0;
         read_in = 0;
         we = 0;
+        DVR = data_bus;
+        op1 = data_bus;
         next_state = 8;
         end
         5'd9: 
@@ -173,6 +176,7 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 0;
         SPR = 7'h7F;
         DAR = 0;
+        DVR = 0;
         next_state = 0;
         end
         5'd13: 
@@ -222,15 +226,14 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         we = 0;
         next_state = 12;
         end
-        5'd8: //next step to subtracting, getting first value
+        5'd8: //next step to subtracting 
         begin
-        read_data = 1;
+       read_data = 1;
         read_val = 0;
         read_in = 0;
-        val = data_bus;
-        op1 = data_bus;
+        val = DVR;
         SPR = SPR + 1;
-        DAR = SPR;
+        DAR = SPR + 1;
         we = 0;
         next_state = 17;
         end
@@ -255,9 +258,11 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         end
         5'd17: //next sub state
         begin
-        read_data = 0;
+        read_data = 1;
         read_val = 0;
         read_in = 0;
+        DVR = data_bus;
+        op2 = data_bus;
         we = 0;
         next_state = 15;
         end
@@ -272,12 +277,11 @@ module new_top(clk,btns,swtchs,leds,segs,an);
         end
         5'd15: //finally subtracing!
         begin
-        read_data = 1;
+        read_data = 0;
         read_val = 0;
         read_in = 0;
         we = 0;
-        op2 = data_bus;
-        val = op1 - op2;
+        val = op2 - op1;
         next_state = 16;
         end
         5'd16: 
